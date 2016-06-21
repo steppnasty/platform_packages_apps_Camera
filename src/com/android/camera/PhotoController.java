@@ -1,6 +1,10 @@
 /*
  * Copyright (C) 2012 The Android Open Source Project
  *
+ * Copyright (C) 2013, The Linux Foundation. All rights reserved.
+ * Not a contribution. Apache license notifcation and license are
+ * retained for attribution purposes only.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -33,11 +37,17 @@ public class PhotoController extends PieController
     private static String TAG = "CAM_photocontrol";
     private static float FLOAT_PI_DIVIDED_BY_TWO = (float) Math.PI / 2;
     private final String mSettingOff;
+    private int popupNum;
 
     private PhotoModule mModule;
-    private String[] mOtherKeys;
-    // First level popup
-    private MoreSettingPopup mPopup;
+    private String[] mOtherKeys1;
+    private String[] mOtherKeys2;
+    private String[] mOtherKeys3;
+   // First level popups
+    private MoreSettingPopup mPopup1;
+    private MoreSettingPopup mPopup2;
+    private MoreSettingPopup mPopup3;
+    private MoreSettingPopup currPopup;
     // Second level popup
     private AbstractSettingPopup mSecondPopup;
 
@@ -49,8 +59,13 @@ public class PhotoController extends PieController
 
     public void initialize(PreferenceGroup group) {
         super.initialize(group);
-        mPopup = null;
+        mPopup1 = null;
+        mPopup2 = null;
+        mPopup3 = null;
+        currPopup = null;
         mSecondPopup = null;
+        popupNum = 0;
+
         float sweep = FLOAT_PI_DIVIDED_BY_TWO / 2;
         addItem(CameraSettings.KEY_FLASH_MODE, FLOAT_PI_DIVIDED_BY_TWO - sweep, sweep);
         addItem(CameraSettings.KEY_EXPOSURE, 3 * FLOAT_PI_DIVIDED_BY_TWO - sweep, sweep);
@@ -95,23 +110,81 @@ public class PhotoController extends PieController
             });
             mRenderer.addItem(hdr);
         }
-        mOtherKeys = new String[] {
+
+       // Dividing the set of other keys into two parts, to accommodate them on the screen
+        mOtherKeys1 = new String[] {
                 CameraSettings.KEY_SCENE_MODE,
                 CameraSettings.KEY_RECORD_LOCATION,
                 CameraSettings.KEY_PICTURE_SIZE,
-                CameraSettings.KEY_FOCUS_MODE};
-        PieItem item = makeItem(R.drawable.ic_settings_holo_light);
-        item.setFixedSlice(FLOAT_PI_DIVIDED_BY_TWO * 3, sweep);
-        item.setOnClickListener(new OnClickListener() {
+                CameraSettings.KEY_HISTOGRAM,
+                CameraSettings.KEY_FOCUS_MODE,
+                CameraSettings.KEY_PICTURE_FORMAT,
+                CameraSettings.KEY_JPEG_QUALITY,
+                CameraSettings.KEY_ZSL};
+
+        mOtherKeys2 = new String[] {
+                CameraSettings.KEY_COLOR_EFFECT,
+                CameraSettings.KEY_FACE_DETECTION,
+                CameraSettings.KEY_FACE_RECOGNITION,
+                CameraSettings.KEY_TOUCH_AF_AEC,
+                CameraSettings.KEY_SELECTABLE_ZONE_AF,
+                CameraSettings.KEY_SATURATION,
+                CameraSettings.KEY_CONTRAST,
+                CameraSettings.KEY_SHARPNESS,
+                CameraSettings.KEY_AUTOEXPOSURE};
+
+        mOtherKeys3 = new String[] {
+                CameraSettings.KEY_ANTIBANDING,
+                CameraSettings.KEY_ISO,
+                CameraSettings.KEY_DENOISE,
+                CameraSettings.KEY_REDEYE_REDUCTION,
+                CameraSettings.KEY_AE_BRACKET_HDR};
+
+        PieItem item1 = makeItem(R.drawable.ic_settings_holo_light);
+        item1.setFixedSlice(FLOAT_PI_DIVIDED_BY_TWO * 3, sweep);
+        item1.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(PieItem item) {
-                if (mPopup == null) {
+                if (mPopup1 == null) {
                     initializePopup();
                 }
-                mModule.showPopup(mPopup);
+                mModule.showPopup(mPopup1);
+                currPopup = mPopup1;
+                popupNum = 1;
             }
         });
-        mRenderer.addItem(item);
+        mRenderer.addItem(item1);
+
+        PieItem item2 = makeItem(R.drawable.ic_settings_holo_light);
+        item2.setFixedSlice(FLOAT_PI_DIVIDED_BY_TWO * 3 - (2*sweep), sweep);
+        item2.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(PieItem item) {
+                if (mPopup2 == null) {
+                    initializePopup();
+                }
+                mModule.showPopup(mPopup2);
+                currPopup = mPopup2;
+                popupNum = 2;
+            }
+        });
+        mRenderer.addItem(item2);
+
+        PieItem item3 = makeItem(R.drawable.ic_settings_holo_light);
+        item3.setFixedSlice(FLOAT_PI_DIVIDED_BY_TWO * 3 + (2*sweep), sweep);
+        item3.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(PieItem item) {
+                if (mPopup3 == null) {
+                    initializePopup();
+                }
+                mModule.showPopup(mPopup3);
+                currPopup = mPopup3;
+                popupNum = 3;
+            }
+        });
+        mRenderer.addItem(item3);
+
     }
 
     protected void setCameraId(int cameraId) {
@@ -122,17 +195,25 @@ public class PhotoController extends PieController
     @Override
     public void reloadPreferences() {
         super.reloadPreferences();
-        if (mPopup != null) {
-            mPopup.reloadPreference();
+        if (mPopup1 != null) {
+            mPopup1.reloadPreference();
+        }
+        if (mPopup2 != null) {
+            mPopup2.reloadPreference();
+        }
+        if (mPopup3 != null) {
+            mPopup3.reloadPreference();
         }
     }
 
     @Override
     // Hit when an item in the second-level popup gets selected
     public void onListPrefChanged(ListPreference pref) {
-        if (mPopup != null && mSecondPopup != null) {
+        if (mPopup1 != null && mSecondPopup != null && (mPopup2 != null) && (mPopup3 != null)) {
                 mModule.dismissPopup(true);
-                mPopup.reloadPreference();
+                mPopup1.reloadPreference();
+                mPopup2.reloadPreference();
+                mPopup3.reloadPreference();
         }
         onSettingChanged(pref);
     }
@@ -140,30 +221,56 @@ public class PhotoController extends PieController
     @Override
     public void overrideSettings(final String ... keyvalues) {
         super.overrideSettings(keyvalues);
-        if (mPopup == null) initializePopup();
-        mPopup.overrideSettings(keyvalues);
+        if ((mPopup1 == null) &&  (mPopup2 == null)  &&  (mPopup3 == null)) initializePopup();
+        mPopup1.overrideSettings(keyvalues);
+        mPopup2.overrideSettings(keyvalues);
+        mPopup3.overrideSettings(keyvalues);
     }
 
     protected void initializePopup() {
         LayoutInflater inflater = (LayoutInflater) mActivity.getSystemService(
                 Context.LAYOUT_INFLATER_SERVICE);
 
-        MoreSettingPopup popup = (MoreSettingPopup) inflater.inflate(
+        MoreSettingPopup popup1 = (MoreSettingPopup) inflater.inflate(
                 R.layout.more_setting_popup, null, false);
-        popup.setSettingChangedListener(this);
-        popup.initialize(mPreferenceGroup, mOtherKeys);
+        popup1.setSettingChangedListener(this);
+        popup1.initialize(mPreferenceGroup, mOtherKeys1);
         if (mActivity.isSecureCamera()) {
             // Prevent location preference from getting changed in secure camera mode
-            popup.setPreferenceEnabled(CameraSettings.KEY_RECORD_LOCATION, false);
-        }
-        mPopup = popup;
+            popup1.setPreferenceEnabled(CameraSettings.KEY_RECORD_LOCATION, false);
+        }		
+        mPopup1 = popup1;
+
+
+        MoreSettingPopup popup2 = (MoreSettingPopup) inflater.inflate(
+                R.layout.more_setting_popup, null, false);
+        popup2.setSettingChangedListener(this);
+        popup2.initialize(mPreferenceGroup, mOtherKeys2);
+        mPopup2 = popup2;
+
+        MoreSettingPopup popup3 = (MoreSettingPopup) inflater.inflate(
+                R.layout.more_setting_popup, null, false);
+        popup3.setSettingChangedListener(this);
+        popup3.initialize(mPreferenceGroup, mOtherKeys3);
+        mPopup3 = popup3;
+
     }
 
     public void popupDismissed(boolean topPopupOnly) {
         // if the 2nd level popup gets dismissed
         if (mSecondPopup != null) {
             mSecondPopup = null;
-            if (topPopupOnly) mModule.showPopup(mPopup);
+
+            initializePopup();
+
+            if (topPopupOnly) {
+                if(popupNum == 1) mModule.showPopup(mPopup1);
+                else if(popupNum == 2) mModule.showPopup(mPopup2);
+                else if(popupNum == 3) mModule.showPopup(mPopup3);
+            }
+        }
+        else{
+            initializePopup();
         }
     }
 

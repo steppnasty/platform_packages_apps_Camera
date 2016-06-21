@@ -57,6 +57,13 @@ public class MosaicRenderer
      public static native void preprocess(float[] stMatrix);
 
      /**
+      * Calling this function will set the natural camera orientation
+      *
+      * @param orientation camera orientation
+      */
+     public static native void setCameraOrientation(int orientation);
+
+     /**
       * This function calls glReadPixels to transfer both the low-res and high-res
       * data from the GPU memory to the CPU memory for further processing by the
       * mosaicing library.

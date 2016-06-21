@@ -18,6 +18,7 @@ package com.android.camera;
 
 import android.content.Context;
 import android.view.LayoutInflater;
+import android.media.CamcorderProfile;
 
 import com.android.camera.ui.AbstractSettingPopup;
 import com.android.camera.ui.ListPrefSettingPopup;
@@ -27,6 +28,7 @@ import com.android.camera.ui.PieItem.OnClickListener;
 import com.android.camera.ui.PieRenderer;
 import com.android.camera.ui.TimeIntervalPopup;
 
+import java.util.HashMap;
 public class VideoController extends PieController
         implements MoreSettingPopup.Listener,
         ListPrefSettingPopup.Listener,
@@ -44,6 +46,21 @@ public class VideoController extends PieController
     private static final int POPUP_FIRST_LEVEL = 1;
     private static final int POPUP_SECOND_LEVEL = 2;
     private int mPopupStatus;
+
+    private static final int[] TIME_LAPSE_VIDEO_QUALITY = {
+            CamcorderProfile.QUALITY_TIME_LAPSE_1080P,
+            CamcorderProfile.QUALITY_TIME_LAPSE_720P,
+            CamcorderProfile.QUALITY_TIME_LAPSE_480P,
+            CamcorderProfile.QUALITY_TIME_LAPSE_CIF,
+            CamcorderProfile.QUALITY_TIME_LAPSE_QVGA,
+            CamcorderProfile.QUALITY_TIME_LAPSE_QCIF,
+            CamcorderProfile.QUALITY_TIME_LAPSE_FWVGA,
+            CamcorderProfile.QUALITY_TIME_LAPSE_WVGA,
+            CamcorderProfile.QUALITY_TIME_LAPSE_VGA,
+            CamcorderProfile.QUALITY_TIME_LAPSE_WQVGA};
+
+    private static final int[] VIDEO_QUALITY = {
+    };
 
     public VideoController(CameraActivity activity, VideoModule module, PieRenderer pie) {
         super(activity, pie);
@@ -80,7 +97,14 @@ public class VideoController extends PieController
                 CameraSettings.KEY_VIDEO_EFFECT,
                 CameraSettings.KEY_VIDEO_TIME_LAPSE_FRAME_INTERVAL,
                 CameraSettings.KEY_VIDEO_QUALITY,
-                CameraSettings.KEY_RECORD_LOCATION};
+                CameraSettings.KEY_RECORD_LOCATION,
+                CameraSettings.KEY_VIDEO_ENCODER,
+                CameraSettings.KEY_AUDIO_ENCODER,
+                CameraSettings.KEY_VIDEO_DURATION,
+                CameraSettings.KEY_COLOR_EFFECT,
+                CameraSettings.KEY_VIDEO_HIGH_FRAME_RATE,
+                CameraSettings.KEY_VIDEO_HDR,
+                CameraSettings.KEY_POWER_MODE};
 
         item = makeItem(R.drawable.ic_settings_holo_light);
         item.setFixedSlice(FLOAT_PI_DIVIDED_BY_TWO * 3, sweep);
@@ -152,6 +176,9 @@ public class VideoController extends PieController
             initializePopup();
             mPopupStatus = POPUP_FIRST_LEVEL;
             if (topPopupOnly) mModule.showPopup(mPopup);
+        }
+        else{
+            initializePopup();
         }
     }
 

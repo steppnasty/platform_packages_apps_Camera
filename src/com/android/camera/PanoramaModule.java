@@ -438,7 +438,11 @@ public class PanoramaModule implements CameraModule,
                 == Configuration.ORIENTATION_LANDSCAPE);
         if (mMosaicPreviewRenderer != null) mMosaicPreviewRenderer.release();
         mMosaicPreviewRenderer = new MosaicPreviewRenderer(
-                screenNail.getSurfaceTexture(), w, h, isLandscape);
+                screenNail.getSurfaceTexture(),
+                w,
+                h,
+                isLandscape,
+                mCameraOrientation);
 
         mCameraTexture = mMosaicPreviewRenderer.getInputSurfaceTexture();
         if (!mPaused && !mThreadRunning && mWaitProcessorTask == null) {

@@ -140,10 +140,27 @@ double g_dAffinetransPan[16];
 GLfloat g_dTranslationToFBOCenterGL[16];
 double g_dTranslationToFBOCenter[16];
 
+// Natural camera orientation
+int gCameraOrientation = 0;
+
 // GL 4x4 Identity transformation
 GLfloat g_dAffinetransIdentGL[] = {
     1., 0., 0., 0.,
     0., 1., 0., 0.,
+    0., 0., 1., 0.,
+    0., 0., 0., 1.};
+
+// GL 4x4 Rotation transformation (column-majored): 270 degree
+GLfloat g_dAffinetransRotation270GL[] = {
+    0., -1., 0., 0.,
+    1., 0., 0., 0.,
+    0., 0., 1., 0.,
+    0., 0., 0., 1.};
+
+// GL 4x4 Rotation transformation (column-majored): 180 degree
+GLfloat g_dAffinetransRotation180GL[] = {
+    -1., 0., 0., 0.,
+    0., -1., 0., 0.,
     0., 0., 1., 0.,
     0., 0., 0., 1.};
 
@@ -154,12 +171,23 @@ GLfloat g_dAffinetransRotation90GL[] = {
     0., 0., 1., 0.,
     0., 0., 0., 1.};
 
+// 3x3 Rotation transformation (row-majored): 270 degree
+double gRotation270[] = {
+    0., 1., 0.,
+    -1., 0., 0.,
+    0., 0., 1.,};
+
+// 3x3 Rotation transformation (row-majored): 180 degree
+double gRotation180[] = {
+    -1., 0., 0.,
+    0., -1., 0.,
+    0., 0., 1.,};
+
 // 3x3 Rotation transformation (row-majored): 90 degree
 double gRotation90[] = {
     0., -1., 0.,
     1., 0., 0.,
     0., 0., 1.,};
-
 
 float g_dIdent3x3[] = {
     1.0, 0.0, 0.0,
@@ -373,13 +401,27 @@ void UpdateWarpTransformation(float *trs)
     db_Multiply3x3_3x3(Htemp1, H, gKm);
     db_Multiply3x3_3x3(Hp, gKminv, Htemp1);
 
-    if (gIsLandscapeOrientation) {
-        ConvertAffine3x3toGL4x4(g_dAffinetransPan, Hp);
-    } else {
-        // rotate Hp by 90 degress.
-        db_Multiply3x3_3x3(Htemp1, gRotation90, Hp);
-        ConvertAffine3x3toGL4x4(g_dAffinetransPan, Htemp1);
-    }
+    switch(gCameraOrientation) {
+        case 270:
+            if (gIsLandscapeOrientation) {
+                db_Multiply3x3_3x3(Htemp1, gRotation180, Hp);
+            } else {
+                db_Multiply3x3_3x3(Htemp1, gRotation270, Hp);
+            }
+            ConvertAffine3x3toGL4x4(g_dAffinetransPan, Htemp1);
+            break;
+        case 180: // TODO
+        case 90: // TODO
+        default:
+            if (gIsLandscapeOrientation) {
+                ConvertAffine3x3toGL4x4(g_dAffinetransPan, Hp);
+            } else {
+                db_Multiply3x3_3x3(Htemp1, gRotation90, Hp);
+                ConvertAffine3x3toGL4x4(g_dAffinetransPan, Htemp1);
+            }
+            break;
+    };
+
 }
 
 void AllocateTextureMemory(int widthHR, int heightHR, int widthLR, int heightLR)
@@ -493,6 +535,8 @@ extern "C"
             JNIEnv * env, jobject obj);
     JNIEXPORT void JNICALL Java_com_android_camera_MosaicRenderer_setWarping(
             JNIEnv * env, jobject obj, jboolean flag);
+    JNIEXPORT void JNICALL Java_com_android_camera_MosaicRenderer_setCameraOrientation(
+            JNIEnv * env, jobject obj, jint orientation);
 };
 
 
@@ -673,6 +717,12 @@ JNIEXPORT void JNICALL Java_com_android_camera_MosaicRenderer_preprocess(
     gSurfTexRenderer[HR].DrawTexture(g_dAffinetransIdentGL);
 }
 
+JNIEXPORT void JNICALL Java_com_android_camera_MosaicRenderer_setCameraOrientation(
+        JNIEnv * env, jobject obj, jint orientation)
+{
+    gCameraOrientation = orientation;
+}
+
 #ifndef now_ms
 #include <time.h>
 static double
@@ -736,11 +786,24 @@ JNIEXPORT void JNICALL Java_com_android_camera_MosaicRenderer_step(
 
         gWarper2.DrawTexture(g_dTranslationToFBOCenterGL);
 
-        if (gIsLandscapeOrientation) {
-            gPreview.DrawTexture(g_dAffinetransIdentGL);
-        } else {
-            gPreview.DrawTexture(g_dAffinetransRotation90GL);
-        }
+        switch (gCameraOrientation) {
+            case 270:
+                if (gIsLandscapeOrientation) {
+                    gPreview.DrawTexture(g_dAffinetransRotation180GL);
+                } else {
+                    gPreview.DrawTexture(g_dAffinetransRotation270GL);
+                }
+                break;
+            case 180: // TODO
+            case 90: // TODO
+            default:
+                if (gIsLandscapeOrientation) {
+                    gPreview.DrawTexture(g_dAffinetransIdentGL);
+                } else {
+                    gPreview.DrawTexture(g_dAffinetransRotation90GL);
+                }
+                break;
+        };
     }
     else
     {

@@ -126,11 +126,11 @@ public class CameraScreenNail extends SurfaceTextureScreenNail {
         return mEnableAspectRatioClamping ? mRenderHeight : getTextureHeight();
     }
 
-    private int getTextureWidth() {
+    public int getTextureWidth() {
         return super.getWidth();
     }
 
-    private int getTextureHeight() {
+    public int getTextureHeight() {
         return super.getHeight();
     }
 
@@ -174,22 +174,16 @@ public class CameraScreenNail extends SurfaceTextureScreenNail {
         }
 
         float aspectRatio;
-        if (getTextureWidth() > getTextureHeight()) {
-            aspectRatio = (float) getTextureWidth() / (float) getTextureHeight();
-        } else {
-            aspectRatio = (float) getTextureHeight() / (float) getTextureWidth();
-        }
+        aspectRatio = (float) getTextureWidth() / (float) getTextureHeight();
         float scaledTextureWidth, scaledTextureHeight;
         if (mRenderWidth > mRenderHeight) {
             scaledTextureWidth = Math.max(mRenderWidth,
                     (int) (mRenderHeight * aspectRatio));
-            scaledTextureHeight = Math.max(mRenderHeight,
-                    (int)(mRenderWidth / aspectRatio));
+            scaledTextureHeight = scaledTextureWidth / aspectRatio;
         } else {
-            scaledTextureWidth = Math.max(mRenderWidth,
-                    (int) (mRenderHeight / aspectRatio));
             scaledTextureHeight = Math.max(mRenderHeight,
-                    (int) (mRenderWidth * aspectRatio));
+                    (int) (mRenderWidth / aspectRatio));
+            scaledTextureWidth = scaledTextureHeight * aspectRatio;
         }
         mScaleX = mRenderWidth / scaledTextureWidth;
         mScaleY = mRenderHeight / scaledTextureHeight;

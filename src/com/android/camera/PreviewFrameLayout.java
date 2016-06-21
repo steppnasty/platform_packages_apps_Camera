@@ -1,5 +1,9 @@
 /*
  * Copyright (C) 2009 The Android Open Source Project
+ * Copyright (c) 2013, Linux Foundation. All rights reserved.
+ *
+ * Not a Contribution. Apache license notifications and license are
+ * retained for attribution purposes only
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,11 +47,15 @@ public class PreviewFrameLayout extends RelativeLayout implements LayoutChangeNo
     private View mBorder;
     private OnSizeChangedListener mListener;
     private LayoutChangeHelper mLayoutChangeHelper;
+    private boolean mOrientationResize;
+    private boolean mPrevOrientationResize;
 
     public PreviewFrameLayout(Context context, AttributeSet attrs) {
         super(context, attrs);
         setAspectRatio(4.0 / 3.0);
         mLayoutChangeHelper = new LayoutChangeHelper(this);
+        mOrientationResize = false;
+        mPrevOrientationResize = false;
     }
 
     @Override
@@ -62,6 +70,11 @@ public class PreviewFrameLayout extends RelativeLayout implements LayoutChangeNo
                 faceViewStub.inflate();
             }
         }
+    }
+
+    public void cameraOrientationPreviewResize(boolean orientation){
+         mPrevOrientationResize = mOrientationResize;
+         mOrientationResize = orientation;
     }
 
     public void setAspectRatio(double ratio) {

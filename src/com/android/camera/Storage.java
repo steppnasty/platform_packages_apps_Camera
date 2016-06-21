@@ -1,5 +1,9 @@
 /*
  * Copyright (C) 2010 The Android Open Source Project
+ * Copyright (c) 2013, Linux Foundation. All rights reserved.
+ *
+ * Not a Contribution. Apache license notifications and license are
+ * retained for attribution purposes only
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,9 +46,14 @@ public class Storage {
 
     public static final String DIRECTORY = DCIM + "/Camera";
 
+    public static final String RAW_DIRECTORY =
+            DCIM + "/Camera/raw";
+
     // Match the code in MediaProvider.computeBucketValues().
     public static final String BUCKET_ID =
             String.valueOf(DIRECTORY.toLowerCase().hashCode());
+    public static final String CAMERA_RAW_IMAGE_BUCKET_ID =
+            String.valueOf(RAW_DIRECTORY.toLowerCase().hashCode());
 
     public static final long UNAVAILABLE = -1L;
     public static final long PREPARING = -2L;
@@ -129,8 +138,19 @@ public class Storage {
     // We also insert hint values for the WIDTH and HEIGHT fields to give
     // correct aspect ratio before the real values are updated in updateImage().
     public static Uri newImage(ContentResolver resolver, String title,
-            long date, int width, int height) {
-        String path = generateFilepath(title);
+            long date, int width, int height, String pictureFormat) {
+        String directory = null;
+        String ext = null;
+        if (pictureFormat == null ||
+            pictureFormat.equalsIgnoreCase("jpeg")) {
+            ext = ".jpg";
+            directory = DIRECTORY;
+        } else {
+            ext = ".raw";
+            directory = RAW_DIRECTORY;
+        }
+
+        String path = directory + '/' + title + ext;
 
         // Insert into MediaStore.
         ContentValues values = new ContentValues(4);
@@ -160,14 +180,29 @@ public class Storage {
     // Returns true if the update is successful.
     public static boolean updateImage(ContentResolver resolver, Uri uri,
             String title, Location location, int orientation, byte[] jpeg,
-            int width, int height) {
+            int width, int height, String pictureFormat) {
         // Save the image.
-        String path = generateFilepath(title);
+
+        String directory = null;
+        String ext = null;
+        if (pictureFormat == null ||
+            pictureFormat.equalsIgnoreCase("jpeg")) {
+            ext = ".jpg";
+            directory = DIRECTORY;
+        } else {
+            ext = ".raw";
+            directory = RAW_DIRECTORY;
+        }
+
+        String path = directory + '/' + title + ext;
+
         String tmpPath = path + ".tmp";
         FileOutputStream out = null;
         try {
             // Write to a temporary file and rename it to the final name. This
             // avoids other apps reading incomplete data.
+            File dir = new File(directory);
+            if (!dir.exists()) dir.mkdirs();
             out = new FileOutputStream(tmpPath);
             out.write(jpeg);
             out.close();
@@ -185,7 +220,7 @@ public class Storage {
         // Insert into MediaStore.
         ContentValues values = new ContentValues(9);
         values.put(ImageColumns.TITLE, title);
-        values.put(ImageColumns.DISPLAY_NAME, title + ".jpg");
+        values.put(ImageColumns.DISPLAY_NAME, title + ext);
         values.put(ImageColumns.MIME_TYPE, "image/jpeg");
         // Clockwise rotation in degrees. 0, 90, 180, or 270.
         values.put(ImageColumns.ORIENTATION, orientation);

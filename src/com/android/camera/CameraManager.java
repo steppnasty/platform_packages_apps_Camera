@@ -29,6 +29,7 @@ import android.hardware.Camera.Parameters;
 import android.hardware.Camera.PictureCallback;
 import android.hardware.Camera.PreviewCallback;
 import android.hardware.Camera.ShutterCallback;
+import android.hardware.Camera.CameraDataCallback;
 import android.os.ConditionVariable;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -43,6 +44,7 @@ import java.io.IOException;
 
 public class CameraManager {
     private static final String TAG = "CameraManager";
+    public int mAquireLock = 0;
     private static CameraManager sCameraManager = new CameraManager();
 
     // Thread progress signals
@@ -76,6 +78,8 @@ public class CameraManager {
     private static final int SET_PREVIEW_DISPLAY_ASYNC = 23;
     private static final int SET_PREVIEW_CALLBACK = 24;
     private static final int ENABLE_SHUTTER_SOUND = 25;
+    private static final int SET_HISTOGRAM_MODE = 26;
+    private static final int SEND_HISTOGRAM_DATA = 27;
 
     private Handler mCameraHandler;
     private CameraProxy mCameraProxy;
@@ -228,6 +232,7 @@ public class CameraManager {
 
                     case GET_PARAMETERS:
                         mParameters = mCamera.getParameters();
+                        mAquireLock--;
                         break;
 
                     case SET_PARAMETERS_ASYNC:
@@ -245,7 +250,12 @@ public class CameraManager {
                     case WAIT_FOR_IDLE:
                         // do nothing
                         break;
-
+                    case SET_HISTOGRAM_MODE:
+                        mCamera.setHistogramMode((CameraDataCallback) msg.obj);
+                        break;
+                    case SEND_HISTOGRAM_DATA:
+                        mCamera.sendHistogramData();
+                        break;
                     default:
                         throw new RuntimeException("Invalid CameraProxy message=" + msg.what);
                 }
@@ -465,10 +475,15 @@ public class CameraManager {
             mCameraHandler.obtainMessage(SET_PARAMETERS_ASYNC, params).sendToTarget();
         }
 
-        public Parameters getParameters() {
+        public synchronized Parameters getParameters() {
             mSig.close();
+            mAquireLock++;
             mCameraHandler.sendEmptyMessage(GET_PARAMETERS);
             mSig.block();
+            while(mAquireLock > 0) {
+              mSig.close();
+              mSig.block();
+            }
             Parameters parameters = mParameters;
             mParameters = null;
             return parameters;
@@ -484,6 +499,17 @@ public class CameraManager {
         public void waitForIdle() {
             mSig.close();
             mCameraHandler.sendEmptyMessage(WAIT_FOR_IDLE);
+            mSig.block();
+        }
+        public void setHistogramMode(CameraDataCallback cb) {
+            mSig.close();
+            mCameraHandler.obtainMessage(SET_HISTOGRAM_MODE, cb).sendToTarget();
+            mSig.block();
+        }
+
+        public void sendHistogramData() {
+            mSig.close();
+            mCameraHandler.sendEmptyMessage(SEND_HISTOGRAM_DATA);
             mSig.block();
         }
     }

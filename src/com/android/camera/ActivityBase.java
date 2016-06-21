@@ -92,6 +92,7 @@ public abstract class ActivityBase extends AbstractGalleryActivity
     // indicator bar, focus indicator and etc.
     protected View mCameraAppView;
     protected boolean mShowCameraAppView = true;
+    protected static boolean mUsingCameraView = true;
     private Animation mCameraAppViewFadeIn;
     private Animation mCameraAppViewFadeOut;
     // Secure album id. This should be incremented every time the camera is
@@ -451,6 +452,7 @@ public abstract class ActivityBase extends AbstractGalleryActivity
         }
 
         if (mShowCameraAppView) {
+            mUsingCameraView = true;
             mCameraAppView.setVisibility(View.VISIBLE);
             // The "transparent region" is not recomputed when a sibling of
             // SurfaceView changes visibility (unless it involves GONE). It's
@@ -458,8 +460,13 @@ public abstract class ActivityBase extends AbstractGalleryActivity
             mCameraAppView.requestLayout();
             mCameraAppView.startAnimation(mCameraAppViewFadeIn);
         } else {
+            mUsingCameraView = false;
             mCameraAppView.startAnimation(mCameraAppViewFadeOut);
         }
+    }
+
+    public static boolean getCameraAppViewStatus() {
+        return mUsingCameraView;
     }
 
     protected void onFullScreenChanged(boolean full) {

@@ -44,6 +44,7 @@ public class MosaicPreviewRenderer {
     private int mHeight; // height of the view in UI
 
     private boolean mIsLandscape = true;
+    private int mCameraOrientation = 0;
     private final float[] mTransformMatrix = new float[16];
 
     private ConditionVariable mEglThreadBlockVar = new ConditionVariable();
@@ -155,6 +156,7 @@ public class MosaicPreviewRenderer {
 
             mInputSurfaceTexture = new SurfaceTexture(MosaicRenderer.init());
             MosaicRenderer.reset(mWidth, mHeight, mIsLandscape);
+            MosaicRenderer.setCameraOrientation(mCameraOrientation);
         }
 
         private void doRelease() {
@@ -186,11 +188,16 @@ public class MosaicPreviewRenderer {
 
     }
 
-    public MosaicPreviewRenderer(SurfaceTexture tex, int w, int h, boolean isLandscape) {
+    public MosaicPreviewRenderer(SurfaceTexture tex,
+                                 int w,
+                                 int h,
+                                 boolean isLandscape,
+                                 int cameraOrientation) {
         mMosaicOutputSurfaceTexture = tex;
         mWidth = w;
         mHeight = h;
         mIsLandscape = isLandscape;
+        mCameraOrientation = cameraOrientation;
 
         mEglThread = new HandlerThread("PanoramaRealtimeRenderer");
         mEglThread.start();
