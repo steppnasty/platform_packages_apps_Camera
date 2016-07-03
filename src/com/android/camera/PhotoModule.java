@@ -67,7 +67,6 @@ import android.widget.FrameLayout;
 import android.widget.FrameLayout.LayoutParams;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
-import android.widget.ProgressBar;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.LinearLayout;
@@ -2310,17 +2309,19 @@ public class PhotoModule
                     if ( (mCameraState != PREVIEW_STOPPED) &&
                             (mFocusManager.getCurrentFocusState() != mFocusManager.STATE_FOCUSING) &&
                             (mFocusManager.getCurrentFocusState() != mFocusManager.STATE_FOCUSING_SNAP_ON_FINISH) ) {
-                        if (mbrightness > MINIMUM_BRIGHTNESS) {
-                            mbrightness-=mbrightness_step;
+                        mParameters = mCameraDevice.getParameters();
+                        String maxBrightness = mParameters.get("max-brightness");
+                        if (maxBrightness != null && !maxBrightness.equals("0")) {
+                            if (mbrightness > MINIMUM_BRIGHTNESS) {
+                                mbrightness-=mbrightness_step;
 
-                            /* Set the "luma-adaptation" parameter */
-                            mParameters = mCameraDevice.getParameters();
-                            mParameters.set("luma-adaptation", String.valueOf(mbrightness));
-                            mCameraDevice.setParameters(mParameters);
+                                /* Set the "luma-adaptation" parameter */
+                                mParameters.set("luma-adaptation", String.valueOf(mbrightness));
+                                mCameraDevice.setParameters(mParameters);
+                            }
+                            brightnessProgressBar.setProgress(mbrightness);
+                            brightnessProgressBar.setVisibility(View.VISIBLE);
                         }
-
-                        brightnessProgressBar.setProgress(mbrightness);
-                        brightnessProgressBar.setVisibility(View.VISIBLE);
 
                     }
                     break;
@@ -2328,17 +2329,19 @@ public class PhotoModule
                     if ( (mCameraState != PREVIEW_STOPPED) &&
                             (mFocusManager.getCurrentFocusState() != mFocusManager.STATE_FOCUSING) &&
                             (mFocusManager.getCurrentFocusState() != mFocusManager.STATE_FOCUSING_SNAP_ON_FINISH) ) {
-                        if (mbrightness < MAXIMUM_BRIGHTNESS) {
-                            mbrightness+=mbrightness_step;
+                        mParameters = mCameraDevice.getParameters();
+                        String maxBrightness = mParameters.get("max-brightness");
+                        if (maxBrightness != null && !maxBrightness.equals("0")) {
+                            if (mbrightness < MAXIMUM_BRIGHTNESS) {
+                                mbrightness+=mbrightness_step;
 
-                            /* Set the "luma-adaptation" parameter */
-                            mParameters = mCameraDevice.getParameters();
-                            mParameters.set("luma-adaptation", String.valueOf(mbrightness));
-                            mCameraDevice.setParameters(mParameters);
-
+                                /* Set the "luma-adaptation" parameter */
+                                mParameters.set("luma-adaptation", String.valueOf(mbrightness));
+                                mCameraDevice.setParameters(mParameters);
+                            }
+                            brightnessProgressBar.setProgress(mbrightness);
+                            brightnessProgressBar.setVisibility(View.VISIBLE);
                         }
-                        brightnessProgressBar.setProgress(mbrightness);
-                        brightnessProgressBar.setVisibility(View.VISIBLE);
 
                     }
                     break;
@@ -2553,13 +2556,20 @@ public class PhotoModule
     private void qcomUpdateCameraParametersPreference(){
         //qcom Related Parameter update
         //Set Brightness.
-        mParameters.set("luma-adaptation", String.valueOf(mbrightness));
+        String maxBrightness = mParameters.get("max-brightness");
+        if (brightnessProgressBar != null) {
+            if (maxBrightness != null && !maxBrightness.equals("0")) {
+                mParameters.set("luma-adaptation", String.valueOf(mbrightness));
+                brightnessProgressBar.setVisibility(View.VISIBLE);
+            } else
+                brightnessProgressBar.setVisibility(View.INVISIBLE);
+        }
 
-		if (Parameters.SCENE_MODE_AUTO.equals(mSceneMode)) {
+        if (Parameters.SCENE_MODE_AUTO.equals(mSceneMode)) {
             // Set Touch AF/AEC parameter.
             String touchAfAec = mPreferences.getString(
-                 CameraSettings.KEY_TOUCH_AF_AEC,
-                 mActivity.getString(R.string.pref_camera_touchafaec_default));
+                    CameraSettings.KEY_TOUCH_AF_AEC,
+                    mActivity.getString(R.string.pref_camera_touchafaec_default));
             if (Util.isSupported(touchAfAec, mParameters.getSupportedTouchAfAec())) {
                 mParameters.setTouchAfAec(touchAfAec);
             }
@@ -3141,7 +3151,7 @@ public class PhotoModule
         mLocationManager.recordLocation(recordLocation);
 
         if(needRestart()){
-            Log.e(TAG, "Restarting Preview... Camera Mode Changhed");
+            Log.e(TAG, "Restarting Preview... Camera Mode Changed");
             stopPreview();
             startPreview();
             setCameraState(IDLE);

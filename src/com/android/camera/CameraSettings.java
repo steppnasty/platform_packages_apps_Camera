@@ -310,6 +310,39 @@ public class CameraSettings {
         ListPreference pictureFormat = group.findPreference(KEY_PICTURE_FORMAT);
         ListPreference videoHDR = group.findPreference(KEY_VIDEO_HDR);
 
+/*
+        if (mParameters.getSupportedZSLModes() == null && zsl != null) {
+            removePreference(group, zsl.getKey());
+        }
+*/
+        if (zsl != null) {
+            filterUnsupportedOptions(group,
+                    zsl, mParameters.getSupportedZSLModes());
+        }
+
+        if (faceDetection != null) {
+            filterUnsupportedOptions(group,
+                    faceDetection, mParameters.getSupportedFaceDetectionModes());
+        }
+
+        if (saturation != null) {
+            String maxSaturation = mParameters.get("max-saturation");
+            if (maxSaturation == null || maxSaturation.equals("0"))
+                removePreference(group, saturation.getKey());
+        }
+
+        if (contrast != null) {
+            String maxContrast = mParameters.get("max-contrast");
+            if (maxContrast == null || maxContrast.equals("0"))
+                removePreference(group, contrast.getKey());
+        }
+
+        if (sharpness != null) {
+            String maxSharpness = mParameters.get("max-sharpness");
+            if (maxSharpness == null || maxSharpness.equals("0"))
+                removePreference(group, sharpness.getKey());
+        }
+
         if (touchAfAec != null && mOverride == false) {
             filterUnsupportedOptions(group,
                     touchAfAec, mParameters.getSupportedTouchAfAec());
@@ -327,7 +360,7 @@ public class CameraSettings {
                     mIso, mParameters.getSupportedIsoValues());
         }
 
-		if (redeyeReduction != null) {
+        if (redeyeReduction != null) {
             filterUnsupportedOptions(group,
                     redeyeReduction, mParameters.getSupportedRedeyeReductionModes());
         }
