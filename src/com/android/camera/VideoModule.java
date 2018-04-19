@@ -894,6 +894,28 @@ public class VideoModule implements CameraModule,
                         defaultQuality);
         int quality = Integer.valueOf(videoQuality);
 
+        // Check if saved profile is supported
+        if (ApiHelper.HAS_GET_SUPPORTED_VIDEO_SIZE &&
+                quality != Integer.valueOf(defaultQuality)) {
+            CamcorderProfile profile = CamcorderProfile.get(mCameraId, quality);
+            List <Size> supportedSizes = mParameters.getSupportedVideoSizes();
+            boolean supported = false;
+            for (Size size : supportedSizes) {
+                if (size.height == profile.videoFrameHeight &&
+                        size.width == profile.videoFrameWidth) {
+                    supported = true;
+                    break;
+                }
+            }
+            //If saved profile is not supported then override with default.
+            if (!supported) {
+                quality = Integer.valueOf(defaultQuality);
+                Editor editor = mPreferences.edit();
+                editor.putString(CameraSettings.KEY_VIDEO_QUALITY, defaultQuality);
+                editor.apply();
+            }
+        }
+
         // Set video quality.
         Intent intent = mActivity.getIntent();
         if (intent.hasExtra(MediaStore.EXTRA_VIDEO_QUALITY)) {
