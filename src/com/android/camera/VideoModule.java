@@ -884,6 +884,76 @@ public class VideoModule implements CameraModule,
         }
     }
 
+    private boolean checkSupportedVideoQuality(int quality) {
+        CamcorderProfile profile;
+        List <Size> supportedSizes = mParameters.getSupportedVideoSizes();
+        if (CamcorderProfile.hasProfile(mCameraId, quality))
+            profile = CamcorderProfile.get(mCameraId, quality);
+        else
+            return false;
+        for (Size size : supportedSizes) {
+            if (size.height == profile.videoFrameHeight &&
+                    size.width == profile.videoFrameWidth)
+                return true;
+        }
+        return false;
+    }
+
+    private int getFirstSupportedVideoQuality() {
+        int defaultQuality = Integer.valueOf(CameraSettings.getDefaultVideoQuality(mCameraId,
+                mActivity.getResources().getString(R.string.pref_video_quality_default)));
+
+        if (CamcorderProfile.hasProfile(mCameraId, defaultQuality)) {
+            if (checkSupportedVideoQuality(defaultQuality))
+                return defaultQuality;
+        }
+        if (CamcorderProfile.hasProfile(mCameraId, CamcorderProfile.QUALITY_4kDCI)) {
+            if (checkSupportedVideoQuality(CamcorderProfile.QUALITY_4kDCI))
+                return CamcorderProfile.QUALITY_4kDCI;
+        }
+        if (CamcorderProfile.hasProfile(mCameraId, CamcorderProfile.QUALITY_4kUHD)) {
+            if (checkSupportedVideoQuality(CamcorderProfile.QUALITY_4kUHD))
+                return CamcorderProfile.QUALITY_4kUHD;
+        }
+        if (CamcorderProfile.hasProfile(mCameraId, CamcorderProfile.QUALITY_1080P)) {
+            if (checkSupportedVideoQuality(CamcorderProfile.QUALITY_1080P))
+                return CamcorderProfile.QUALITY_1080P;
+        }
+        if (CamcorderProfile.hasProfile(mCameraId, CamcorderProfile.QUALITY_720P)) {
+            if (checkSupportedVideoQuality(CamcorderProfile.QUALITY_720P))
+                return CamcorderProfile.QUALITY_720P;
+        }
+        if (CamcorderProfile.hasProfile(mCameraId, CamcorderProfile.QUALITY_480P)) {
+            if (checkSupportedVideoQuality(CamcorderProfile.QUALITY_480P))
+                return CamcorderProfile.QUALITY_480P;
+        }
+        if (CamcorderProfile.hasProfile(mCameraId, CamcorderProfile.QUALITY_FWVGA)) {
+            if (checkSupportedVideoQuality(CamcorderProfile.QUALITY_FWVGA))
+                return CamcorderProfile.QUALITY_FWVGA;
+        }
+        if (CamcorderProfile.hasProfile(mCameraId, CamcorderProfile.QUALITY_WVGA)) {
+            if (checkSupportedVideoQuality(CamcorderProfile.QUALITY_WVGA))
+                return CamcorderProfile.QUALITY_WVGA;
+        }
+        if (CamcorderProfile.hasProfile(mCameraId, CamcorderProfile.QUALITY_VGA)) {
+            if (checkSupportedVideoQuality(CamcorderProfile.QUALITY_VGA))
+                return CamcorderProfile.QUALITY_VGA;
+        }
+        if (CamcorderProfile.hasProfile(mCameraId, CamcorderProfile.QUALITY_QCIF)) {
+            if (checkSupportedVideoQuality(CamcorderProfile.QUALITY_QCIF))
+                return CamcorderProfile.QUALITY_QCIF;
+        }
+        if (CamcorderProfile.hasProfile(mCameraId, CamcorderProfile.QUALITY_WQVGA)) {
+            if (checkSupportedVideoQuality(CamcorderProfile.QUALITY_WQVGA))
+                return CamcorderProfile.QUALITY_WQVGA;
+        }
+        if (CamcorderProfile.hasProfile(mCameraId, CamcorderProfile.QUALITY_QVGA)) {
+            if (checkSupportedVideoQuality(CamcorderProfile.QUALITY_QVGA))
+                return CamcorderProfile.QUALITY_QVGA;
+        }
+        return CamcorderProfile.QUALITY_CIF;
+    }
+
     private void readVideoPreferences() {
         // The preference stores values from ListPreference and is thus string type for all values.
         // We need to convert it to int manually.
@@ -895,23 +965,14 @@ public class VideoModule implements CameraModule,
         int quality = Integer.valueOf(videoQuality);
 
         // Check if saved profile is supported
-        if (ApiHelper.HAS_GET_SUPPORTED_VIDEO_SIZE &&
-                quality != Integer.valueOf(defaultQuality)) {
-            CamcorderProfile profile = CamcorderProfile.get(mCameraId, quality);
-            List <Size> supportedSizes = mParameters.getSupportedVideoSizes();
-            boolean supported = false;
-            for (Size size : supportedSizes) {
-                if (size.height == profile.videoFrameHeight &&
-                        size.width == profile.videoFrameWidth) {
-                    supported = true;
-                    break;
-                }
-            }
-            //If saved profile is not supported then override with default.
-            if (!supported) {
-                quality = Integer.valueOf(defaultQuality);
+        if (ApiHelper.HAS_GET_SUPPORTED_VIDEO_SIZE) {
+            if (!checkSupportedVideoQuality(quality)) {
+                if (ApiHelper.HAS_FINE_RESOLUTION_QUALITY_LEVELS)
+                    quality = getFirstSupportedVideoQuality();
+                else
+                    quality = CamcorderProfile.QUALITY_LOW;
                 Editor editor = mPreferences.edit();
-                editor.putString(CameraSettings.KEY_VIDEO_QUALITY, defaultQuality);
+                editor.putString(CameraSettings.KEY_VIDEO_QUALITY, Integer.toString(quality));
                 editor.apply();
             }
         }
