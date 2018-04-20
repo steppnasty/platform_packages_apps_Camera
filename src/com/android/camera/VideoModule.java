@@ -903,54 +903,30 @@ public class VideoModule implements CameraModule,
         int defaultQuality = Integer.valueOf(CameraSettings.getDefaultVideoQuality(mCameraId,
                 mActivity.getResources().getString(R.string.pref_video_quality_default)));
 
-        if (CamcorderProfile.hasProfile(mCameraId, defaultQuality)) {
-            if (checkSupportedVideoQuality(defaultQuality))
-                return defaultQuality;
-        }
-        if (CamcorderProfile.hasProfile(mCameraId, CamcorderProfile.QUALITY_4kDCI)) {
-            if (checkSupportedVideoQuality(CamcorderProfile.QUALITY_4kDCI))
-                return CamcorderProfile.QUALITY_4kDCI;
-        }
-        if (CamcorderProfile.hasProfile(mCameraId, CamcorderProfile.QUALITY_4kUHD)) {
-            if (checkSupportedVideoQuality(CamcorderProfile.QUALITY_4kUHD))
-                return CamcorderProfile.QUALITY_4kUHD;
-        }
-        if (CamcorderProfile.hasProfile(mCameraId, CamcorderProfile.QUALITY_1080P)) {
-            if (checkSupportedVideoQuality(CamcorderProfile.QUALITY_1080P))
-                return CamcorderProfile.QUALITY_1080P;
-        }
-        if (CamcorderProfile.hasProfile(mCameraId, CamcorderProfile.QUALITY_720P)) {
-            if (checkSupportedVideoQuality(CamcorderProfile.QUALITY_720P))
-                return CamcorderProfile.QUALITY_720P;
-        }
-        if (CamcorderProfile.hasProfile(mCameraId, CamcorderProfile.QUALITY_480P)) {
-            if (checkSupportedVideoQuality(CamcorderProfile.QUALITY_480P))
-                return CamcorderProfile.QUALITY_480P;
-        }
-        if (CamcorderProfile.hasProfile(mCameraId, CamcorderProfile.QUALITY_FWVGA)) {
-            if (checkSupportedVideoQuality(CamcorderProfile.QUALITY_FWVGA))
-                return CamcorderProfile.QUALITY_FWVGA;
-        }
-        if (CamcorderProfile.hasProfile(mCameraId, CamcorderProfile.QUALITY_WVGA)) {
-            if (checkSupportedVideoQuality(CamcorderProfile.QUALITY_WVGA))
-                return CamcorderProfile.QUALITY_WVGA;
-        }
-        if (CamcorderProfile.hasProfile(mCameraId, CamcorderProfile.QUALITY_VGA)) {
-            if (checkSupportedVideoQuality(CamcorderProfile.QUALITY_VGA))
-                return CamcorderProfile.QUALITY_VGA;
-        }
-        if (CamcorderProfile.hasProfile(mCameraId, CamcorderProfile.QUALITY_QCIF)) {
-            if (checkSupportedVideoQuality(CamcorderProfile.QUALITY_QCIF))
-                return CamcorderProfile.QUALITY_QCIF;
-        }
-        if (CamcorderProfile.hasProfile(mCameraId, CamcorderProfile.QUALITY_WQVGA)) {
-            if (checkSupportedVideoQuality(CamcorderProfile.QUALITY_WQVGA))
-                return CamcorderProfile.QUALITY_WQVGA;
-        }
-        if (CamcorderProfile.hasProfile(mCameraId, CamcorderProfile.QUALITY_QVGA)) {
-            if (checkSupportedVideoQuality(CamcorderProfile.QUALITY_QVGA))
-                return CamcorderProfile.QUALITY_QVGA;
-        }
+        if (checkSupportedVideoQuality(defaultQuality))
+            return defaultQuality;
+        if (checkSupportedVideoQuality(CamcorderProfile.QUALITY_4kDCI))
+            return CamcorderProfile.QUALITY_4kDCI;
+        if (checkSupportedVideoQuality(CamcorderProfile.QUALITY_4kUHD))
+            return CamcorderProfile.QUALITY_4kUHD;
+        if (checkSupportedVideoQuality(CamcorderProfile.QUALITY_1080P))
+            return CamcorderProfile.QUALITY_1080P;
+        if (checkSupportedVideoQuality(CamcorderProfile.QUALITY_720P))
+            return CamcorderProfile.QUALITY_720P;
+        if (checkSupportedVideoQuality(CamcorderProfile.QUALITY_480P))
+            return CamcorderProfile.QUALITY_480P;
+        if (checkSupportedVideoQuality(CamcorderProfile.QUALITY_FWVGA))
+            return CamcorderProfile.QUALITY_FWVGA;
+        if (checkSupportedVideoQuality(CamcorderProfile.QUALITY_WVGA))
+            return CamcorderProfile.QUALITY_WVGA;
+        if (checkSupportedVideoQuality(CamcorderProfile.QUALITY_VGA))
+            return CamcorderProfile.QUALITY_VGA;
+        if (checkSupportedVideoQuality(CamcorderProfile.QUALITY_QCIF))
+            return CamcorderProfile.QUALITY_QCIF;
+        if (checkSupportedVideoQuality(CamcorderProfile.QUALITY_WQVGA))
+            return CamcorderProfile.QUALITY_WQVGA;
+        if (checkSupportedVideoQuality(CamcorderProfile.QUALITY_QVGA))
+            return CamcorderProfile.QUALITY_QVGA;
         return CamcorderProfile.QUALITY_CIF;
     }
 
