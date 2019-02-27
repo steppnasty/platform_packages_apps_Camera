@@ -19,6 +19,7 @@ package com.android.camera;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.provider.MediaStore;
 
 /**
  * {@code CameraButtonIntentReceiver} is invoked when the camera button is
@@ -34,18 +35,7 @@ public class CameraButtonIntentReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        // Try to get the camera hardware
-        CameraHolder holder = CameraHolder.instance();
-        ComboPreferences pref = new ComboPreferences(context);
-        int cameraId = CameraSettings.readPreferredCameraId(pref);
-        if (holder.tryOpen(cameraId) == null) return;
-
-        // We are going to launch the camera, so hold the camera for later use
-        holder.keep();
-        holder.release();
-        Intent i = new Intent(Intent.ACTION_MAIN);
-        i.setClass(context, CameraActivity.class);
-        i.addCategory(Intent.CATEGORY_LAUNCHER);
+        Intent i = new Intent(MediaStore.INTENT_ACTION_STILL_IMAGE_CAMERA);
         i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK
                 | Intent.FLAG_ACTIVITY_CLEAR_TOP);
         context.startActivity(i);
